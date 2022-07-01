@@ -660,7 +660,7 @@ class Permutation:
             sub_node_need_recursive_search = []
             while has_visit_children_num < len(node_children):
                 for child_name in node_children:
-                    if child_name != 'output':    # 'output' node has no 'module_type'
+                    if child_name != 'output' and fx_graph.get(child_name):    # 'output' node has no 'module_type'
                         child_module_type = fx_graph.get(child_name).get('module_type')
                         if child_module_type in ['torch.nn.modules.conv.Conv2d', 'torch.nn.modules.linear.Linear']:
                             print("[recursive_find_real_children] node_name: \'{:}\', has one real child: \'{:}\', its real child module type: \'{:}\'.".format(node_name, child_name, child_module_type))
