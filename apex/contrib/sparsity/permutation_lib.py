@@ -173,17 +173,21 @@ class Permutation:
         is_node_in_sparse_parameters = False
         success_permutation = False
         for module_name, module, p_name, p, mask, pruned in cls.__sparse_parameters:
-            processed_module_name = ''.join(c for c in module_name if c not in string.punctuation).lower()
-            processed_node_name = ''.join(c for c in node_name if c not in string.punctuation).lower()
-            distributed_node_name = 'module.' + node_name
-            processed_distributed_node_name = 'module.' + processed_node_name
-            if (module_name == node_name) or (module_name == distributed_node_name) or (processed_module_name == processed_node_name) or (processed_module_name == processed_distributed_node_name):    # Inception-V3, module_name: Conv2d_2a_3x3.conv, node_name: conv2d.1a.3x3.conv
-                print("[apply_permutation_in_C_dim] find the node: \'{:}\' in cls.__sparse_parameters, succeed to apply permutation in C dim.".format(node_name))
-                is_node_in_sparse_parameters = True
-                temp_weight = torch.zeros_like(p)
-                temp_weight.copy_(p[:, permutation_sequence, ...])
-                p.data.copy_(temp_weight)
-                success_permutation = True
+            try:
+                processed_module_name = ''.join(c for c in module_name if c not in string.punctuation).lower()
+                processed_node_name = ''.join(c for c in node_name if c not in string.punctuation).lower()
+                distributed_node_name = 'module.' + node_name
+                processed_distributed_node_name = 'module.' + processed_node_name
+                if (module_name == node_name) or (module_name == distributed_node_name) or (processed_module_name == processed_node_name) or (processed_module_name == processed_distributed_node_name):    # Inception-V3, module_name: Conv2d_2a_3x3.conv, node_name: conv2d.1a.3x3.conv
+                    print("[apply_permutation_in_C_dim] find the node: \'{:}\' in cls.__sparse_parameters, succeed to apply permutation in C dim.".format(node_name))
+                    is_node_in_sparse_parameters = True
+                    temp_weight = torch.zeros_like(p)
+                    temp_weight.copy_(p[:, permutation_sequence, ...])
+                    p.data.copy_(temp_weight)
+                    success_permutation = True
+            except:
+                success_permutation = False
+                print("[apply_permutation_in_C_dim] cannot find the node: {:} in cls.__sparse_parameters".format(node_name))
         if is_node_in_sparse_parameters == False:
             # A special case: if the node itself not in sparse_module_names but one of its real_siblings in sparse_module_names, then the node will not do the permutation search, but it may need to apply the offline permutation in C dim according to the searched permutation sequence from its real_siblings in sparse_module_names
             try:
